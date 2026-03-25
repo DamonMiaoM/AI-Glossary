@@ -1737,6 +1737,14 @@ let currentFilter = 'all';
 let editingId = null;
 let currentView = 'grid';
 
+// ─── Storage ───
+function saveStorage() {
+  tabWords[currentTab] = words;
+  ['ai','github','books','figures','movies'].forEach(tab => {
+    localStorage.setItem('vocab-' + tab, JSON.stringify(tabWords[tab]));
+  });
+}
+
 // ─── Theme Toggle ───
 function toggleTheme() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -1777,6 +1785,10 @@ function switchTab(tabId, btn) {
 // ─── Init ───
 function init() {
   applyTheme();
+  ['ai','github','books','figures','movies'].forEach(tab => {
+    const saved = localStorage.getItem('vocab-' + tab);
+    if (saved) try { tabWords[tab] = JSON.parse(saved); } catch(e) {}
+  });
   switchTab('ai', document.querySelector('.tab-item'));
 }
 
@@ -1947,6 +1959,7 @@ function saveWord() {
     showToast('✅ 已添加');
   }
 
+  saveStorage();
   renderCards();
   closeModal('addModal');
 }
@@ -1955,6 +1968,7 @@ function deleteWord(id) {
   if (!confirm('确认删除这个词汇？')) return;
   words = words.filter(x => x.id !== id);
   tabWords[currentTab] = words;
+  saveStorage();
   renderCards();
   showToast('🗑️ 已删除');
 }
