@@ -84,6 +84,7 @@
     border-radius: 20px;
     font-weight: 600;
     border: 1px solid var(--border);
+    white-space: nowrap;
   }
 
   /* ── Main Layout ── */
@@ -473,6 +474,61 @@
     transition: all 0.15s;
   }
   .btn-io:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
+
+  /* ── Mobile Responsive ── */
+  @media (max-width: 640px) {
+    header { padding: 12px 16px; gap: 8px; flex-wrap: wrap; }
+    .logo h1 { font-size: 15px; }
+    .logo span { display: none; }
+    .logo-icon { font-size: 20px; }
+    .header-right { gap: 8px; }
+    .count-badge { font-size: 11px; padding: 3px 8px; white-space: nowrap; }
+    .theme-btn { padding: 6px 10px; font-size: 12px; }
+    .btn-add { padding: 8px 12px; font-size: 13px; }
+    .container { padding: 16px; }
+    .toolbar { gap: 8px; margin-bottom: 16px; }
+    .filter-group { gap: 6px; }
+    .filter-btn { padding: 6px 10px; font-size: 12px; }
+    .io-bar { gap: 6px; }
+    .btn-io { padding: 6px 10px; font-size: 11px; }
+    .grid { grid-template-columns: 1fr; gap: 12px; }
+    .tab-nav { padding: 0 12px; }
+    .tab-item { padding: 12px 14px; font-size: 13px; }
+    .modal { padding: 20px 16px; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+
+  /* ── Tab Navigation ── */
+  .tab-nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    box-shadow: 0 1px 4px var(--shadow);
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-item {
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text2);
+    padding: 14px 22px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    margin-bottom: -1px;
+  }
+  .tab-item:hover { color: var(--text); background: var(--surface2); }
+  .tab-item.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -491,6 +547,14 @@
     <button class="btn-add" onclick="openAddModal()">＋ 添加词汇</button>
   </div>
 </header>
+
+<nav class="tab-nav" id="tabNav">
+  <button class="tab-item active" onclick="switchTab('ai', this)">🤖 AI Glossaries</button>
+  <button class="tab-item" onclick="switchTab('github', this)">🐙 GitHub Terms</button>
+  <button class="tab-item" onclick="switchTab('books', this)">📚 Books</button>
+  <button class="tab-item" onclick="switchTab('figures', this)">🌟 Figures</button>
+  <button class="tab-item" onclick="switchTab('movies', this)">🎬 Movies</button>
+</nav>
 
 <div class="container">
   <div class="toolbar">
@@ -580,11 +644,21 @@
 <script>
 // ─── 分类 → CSS class 映射 ───
 const catClass = {
-  '核心概念': 'cat-core',
-  'Agent': 'cat-agent',
-  '基础设施': 'cat-infra',
-  '模型与算法': 'cat-model',
-  '数据与存储': 'cat-data',
+  // AI Glossaries
+  '核心概念': 'cat-core', 'Agent': 'cat-agent',
+  '基础设施': 'cat-infra', '模型与算法': 'cat-model', '数据与存储': 'cat-data',
+  // GitHub Terms
+  'Repository': 'cat-core', 'Workflow': 'cat-agent',
+  'Collaboration': 'cat-infra', 'Security': 'cat-model', 'CI/CD': 'cat-data',
+  // Books
+  'AI & Tech': 'cat-core', 'Business': 'cat-agent',
+  'Philosophy': 'cat-infra', 'Science': 'cat-model', 'Self-help': 'cat-data',
+  // Figures
+  'AI Research': 'cat-core', 'Entrepreneur': 'cat-agent',
+  'Philosophy': 'cat-infra', 'Science': 'cat-model', 'Media': 'cat-data',
+  // Movies
+  'Sci-Fi': 'cat-core', 'Documentary': 'cat-agent',
+  'Drama': 'cat-infra', 'Action': 'cat-model', 'Animation': 'cat-data',
 };
 
 // ─────────────────────────────────────────────────
@@ -1294,8 +1368,371 @@ const WORDS = [
   },
 ];
 
-// ─── Runtime state（本地临时，关闭即消失；不影响部署版数据）───
-let words = JSON.parse(JSON.stringify(WORDS));
+// ─── GitHub Terms (25 entries) ───
+const GITHUB_TERMS = [
+  { id: 1, term: 'Repository', full: 'Git Repository', zh: '仓库', cat: 'Repository',
+    desc_en: 'A storage location for your project files and the entire revision history. Can be public (visible to everyone) or private.',
+    desc_zh: '存储项目所有文件和历史记录的地方，就像项目的"文件夹+时光机"。公开仓库所有人可见，私有仓库只有你邀请的人才能访问。' },
+  { id: 2, term: 'Commit', full: 'Git Commit', zh: '提交', cat: 'Workflow',
+    desc_en: 'A snapshot of your changes saved to the repository\'s history. Each commit has a unique ID and a message describing what changed.',
+    desc_zh: '将你的修改保存到历史记录的操作，相当于给项目存档。每次提交都有唯一 ID 和说明信息，方便以后回溯。' },
+  { id: 3, term: 'Branch', full: 'Git Branch', zh: '分支', cat: 'Workflow',
+    desc_en: 'An independent line of development. You can create branches to work on features or fixes without affecting the main codebase.',
+    desc_zh: '独立的开发线路。创建分支可以在不影响主代码的情况下开发新功能或修复 bug，完成后再合并回主分支。' },
+  { id: 4, term: 'Pull Request', full: 'Pull Request (PR)', zh: '拉取请求', cat: 'Collaboration',
+    desc_en: 'A request to merge changes from one branch into another. Used for code review and collaboration before changes are accepted.',
+    desc_zh: '将一个分支的改动合并到另一个分支的申请，通常用于代码审查。团队协作的核心流程：写代码 → 开 PR → 审查 → 合并。' },
+  { id: 5, term: 'Fork', full: 'Repository Fork', zh: '复刻', cat: 'Collaboration',
+    desc_en: 'A personal copy of someone else\'s repository. Lets you freely experiment with changes without affecting the original project.',
+    desc_zh: '复制他人仓库到自己账号下的操作，可以自由修改而不影响原始项目。开源贡献的标准流程：Fork → 修改 → 提 PR。' },
+  { id: 6, term: 'Clone', full: 'Git Clone', zh: '克隆', cat: 'Workflow',
+    desc_en: 'Downloading a complete copy of a repository from GitHub to your local computer, including all files and version history.',
+    desc_zh: '将 GitHub 上的仓库完整下载到本地电脑，包含所有文件和历史记录。是在本地开始工作的第一步。' },
+  { id: 7, term: 'Push', full: 'Git Push', zh: '推送', cat: 'Workflow',
+    desc_en: 'Uploading your local commits to the remote repository on GitHub, making your changes visible to others.',
+    desc_zh: '将本地的提交上传到 GitHub 远程仓库，让你的修改对他人可见。与 Pull（拉取）相对：Push 是上传，Pull 是下载更新。' },
+  { id: 8, term: 'Merge', full: 'Git Merge', zh: '合并', cat: 'Workflow',
+    desc_en: 'Combining changes from one branch into another. The final step after a pull request is approved.',
+    desc_zh: '将一个分支的改动整合进另一个分支的操作。Pull Request 审查通过后执行合并，将新功能正式纳入主分支。' },
+  { id: 9, term: 'Issue', full: 'GitHub Issue', zh: '议题', cat: 'Collaboration',
+    desc_en: 'A way to track bugs, feature requests, or tasks in a GitHub repository. Can be assigned to team members and linked to pull requests.',
+    desc_zh: '在 GitHub 仓库中追踪 bug、功能需求或任务的工具，相当于项目的"待办清单"。可指派给团队成员并与 PR 关联。' },
+  { id: 10, term: 'GitHub Actions', full: 'GitHub Actions (CI/CD)', zh: '自动化工作流', cat: 'CI/CD',
+    desc_en: 'An automation platform built into GitHub that runs workflows (like tests or deployments) automatically when you push code.',
+    desc_zh: 'GitHub 内置的自动化平台，每次推送代码时自动运行工作流（如测试、部署）。是持续集成/持续部署（CI/CD）的主流工具。' },
+  { id: 11, term: 'README', full: 'README.md', zh: '自述文件', cat: 'Repository',
+    desc_en: 'A markdown file that serves as the front page of your repository. Describes what the project does, how to install it, and how to use it.',
+    desc_zh: '仓库的"封面说明"，用 Markdown 格式编写。介绍项目功能、安装方法和使用指南，是别人了解你项目的第一个文件。' },
+  { id: 12, term: 'Star', full: 'GitHub Star', zh: '星标 / 收藏', cat: 'Collaboration',
+    desc_en: 'A way to bookmark and show appreciation for a repository. The number of stars is a common measure of a project\'s popularity.',
+    desc_zh: '给仓库点"赞"的操作，相当于收藏。Star 数是衡量开源项目受欢迎程度的重要指标，类似于社交媒体的"点赞"。' },
+  { id: 13, term: 'Markdown', full: 'Markdown (.md)', zh: '标记语言', cat: 'Repository',
+    desc_en: 'A lightweight formatting language used for README files, issues, and comments on GitHub. Uses simple symbols like # for headings and * for bold.',
+    desc_zh: '一种轻量级排版语言，GitHub 上的文档、Issue 和评论都用它。用 # 表示标题、** 表示加粗，学习成本极低但排版效果专业。' },
+  { id: 14, term: '.gitignore', full: 'Git Ignore File', zh: '忽略文件', cat: 'Repository',
+    desc_en: 'A configuration file that tells Git which files or folders to ignore (not track). Commonly used to exclude passwords, logs, and temporary files.',
+    desc_zh: '告诉 Git 哪些文件不需要跟踪的配置文件。通常用来排除密码文件、日志和临时文件，防止敏感信息被意外上传。' },
+  { id: 15, term: 'GitHub Pages', full: 'GitHub Pages (Static Hosting)', zh: '静态网页托管', cat: 'CI/CD',
+    desc_en: 'A free service that turns your repository into a live website. Perfect for personal sites, documentation, and project demos — like the page you\'re reading now!',
+    desc_zh: '将仓库变成一个在线网站的免费服务，适合个人网站、文档和项目展示——你正在看的这个页面就是用 GitHub Pages 托管的！' },
+  { id: 16, term: 'Pull', full: 'Git Pull', zh: '拉取', cat: 'Workflow',
+    desc_en: 'Downloading the latest changes from the remote repository to your local copy. The opposite of Push — Pull gets updates, Push sends them.',
+    desc_zh: '从远程仓库下载最新改动到本地的操作。与 Push（推送）相反：Pull 是"拿回来"，Push 是"送上去"。' },
+  { id: 17, term: 'Diff', full: 'Git Diff', zh: '差异对比', cat: 'Workflow',
+    desc_en: 'A view showing exactly what changed between two versions of a file. Lines added are shown in green, lines removed in red.',
+    desc_zh: '显示两个版本之间具体差异的视图。新增的行标绿色，删除的行标红色，让你一目了然地看到每次修改了什么。' },
+  { id: 18, term: 'Release', full: 'GitHub Release', zh: '版本发布', cat: 'Repository',
+    desc_en: 'A packaged version of your project ready for distribution. Includes release notes, version number, and downloadable files.',
+    desc_zh: '打包好的项目版本，可供他人下载使用。包含版本说明、版本号和可下载文件，是软件正式发布的标准方式。' },
+  { id: 19, term: 'Tag', full: 'Git Tag', zh: '标签', cat: 'Workflow',
+    desc_en: 'A named reference to a specific commit, typically used to mark release points like v1.0 or v2.3.1.',
+    desc_zh: '给某次提交打上的命名标记，通常用来标记版本号（如 v1.0、v2.3.1）。相当于给历史中的某个时刻"钉个钉子"。' },
+  { id: 20, term: 'Conflict', full: 'Merge Conflict', zh: '合并冲突', cat: 'Workflow',
+    desc_en: 'Occurs when two branches modify the same lines of code differently. Git cannot auto-resolve it — a human must decide which version to keep.',
+    desc_zh: '两个分支修改了同一段代码时发生的冲突。Git 无法自动决定保留哪个版本，需要人工选择。是团队协作中最常见的"小麻烦"。' },
+  { id: 21, term: 'Code Review', full: 'Peer Code Review', zh: '代码审查', cat: 'Collaboration',
+    desc_en: 'The practice of team members reading and commenting on each other\'s code before merging. Catches bugs and improves code quality.',
+    desc_zh: '团队成员在合并代码前互相阅读和评论的做法。能发现 bug、提升代码质量，也是互相学习的好机会。' },
+  { id: 22, term: 'Gist', full: 'GitHub Gist', zh: '代码片段', cat: 'Collaboration',
+    desc_en: 'A simple way to share small code snippets, notes, or configuration files. Like a mini-repository for quick sharing.',
+    desc_zh: '快速分享小段代码、笔记或配置文件的工具，相当于迷你仓库。适合分享配置文件、代码示例等零散内容。' },
+  { id: 23, term: 'SSH Key', full: 'Secure Shell Key', zh: '安全密钥', cat: 'Security',
+    desc_en: 'A cryptographic key pair used to securely connect to GitHub without entering your password every time. Like a digital ID card.',
+    desc_zh: '用于安全连接 GitHub 的加密密钥对，免去每次输入密码。相当于一把数字钥匙，证明"这台电脑是我本人在用"。' },
+  { id: 24, term: 'Token', full: 'Personal Access Token (PAT)', zh: '访问令牌', cat: 'Security',
+    desc_en: 'A password-like string used to authenticate with GitHub\'s API. More secure than passwords and can be limited to specific permissions.',
+    desc_zh: '用于 GitHub API 认证的密钥字符串，比密码更安全。可以设置权限范围和有效期，是自动化和 CI/CD 的常用认证方式。' },
+  { id: 25, term: 'Open Source', full: 'Open Source Software (OSS)', zh: '开源', cat: 'Collaboration',
+    desc_en: 'Software whose source code is publicly available for anyone to view, use, modify, and distribute. GitHub is the world\'s largest open source community.',
+    desc_zh: '源代码公开、任何人都可查看、使用、修改和分发的软件。GitHub 是全球最大的开源社区，Linux、Python、VS Code 都是开源项目。' },
+];
+
+// ─── Books (30 entries) ───
+const BOOKS = [
+  { id: 1, term: 'The Coming Wave', full: 'Mustafa Suleyman', zh: '即将到来的浪潮', cat: 'AI & Tech',
+    desc_en: 'Written by the co-founder of DeepMind. Explores the transformative and potentially dangerous power of AI and synthetic biology.',
+    desc_zh: 'DeepMind 联合创始人穆斯塔法·苏莱曼所著，探讨 AI 和合成生物学的变革力量与潜在风险。是理解 AI 时代不可忽视的政策与哲学思考。' },
+  { id: 2, term: 'The Inevitable', full: 'Kevin Kelly', zh: '必然', cat: 'AI & Tech',
+    desc_en: 'Kevin Kelly identifies 12 technological forces that will shape the next 30 years — including AI, sharing, filtering, and remixing.',
+    desc_zh: '凯文·凯利预判未来 30 年的 12 种科技力量。写于 2016 年，今天读来仍惊人准确，是理解数字时代的必读经典。' },
+  { id: 3, term: 'Zero to One', full: 'Peter Thiel', zh: '从零到一', cat: 'Business',
+    desc_en: 'Peter Thiel\'s contrarian philosophy on startups: the best businesses create something new (0 to 1) rather than copying what works (1 to n).',
+    desc_zh: '彼得·蒂尔的创业哲学：最好的生意是创造全新事物（从 0 到 1），而非复制已有模式。颠覆传统竞争观，创业者必读。' },
+  { id: 4, term: 'Sapiens', full: 'Yuval Noah Harari', zh: '人类简史', cat: 'Science',
+    desc_en: 'A sweeping history of humankind from the Stone Age to Silicon Age. Explores how myths, money, and cooperation built civilizations.',
+    desc_zh: '从石器时代到硅时代的人类大历史。揭示虚构故事、金钱和合作如何构建文明，改变你看世界的方式。全球畅销 2500 万册。' },
+  { id: 5, term: 'Thinking, Fast and Slow', full: 'Daniel Kahneman', zh: '思考，快与慢', cat: 'Science',
+    desc_en: 'Nobel laureate Kahneman reveals the two systems that drive how we think: fast intuition and slow reasoning. Explains why we make irrational decisions.',
+    desc_zh: '诺贝尔奖得主卡尼曼揭示人类思维的两个系统：快速直觉与缓慢理性。解释为什么聪明人也会做出愚蠢决策，是认知科学的里程碑之作。' },
+  { id: 6, term: 'Atomic Habits', full: 'James Clear', zh: '原子习惯', cat: 'Self-help',
+    desc_en: 'A practical guide to building good habits and breaking bad ones. The core insight: tiny 1% improvements compound into remarkable results.',
+    desc_zh: '建立好习惯、打破坏习惯的实用指南。核心洞见：每天进步 1%，一年后你会强大 37 倍。全球销量超 2000 万册。' },
+  { id: 7, term: 'The Almanack of Naval Ravikant', full: 'Eric Jorgenson (about Naval)', zh: '纳瓦尔宝典', cat: 'Philosophy',
+    desc_en: 'A collection of Naval Ravikant\'s wisdom on wealth, happiness, and life philosophy. "Seek wealth, not money. Wealth is having assets that earn while you sleep."',
+    desc_zh: '硅谷传奇天使投资人纳瓦尔的智慧合集，涵盖财富、幸福与人生哲学。核心理念：追求财富而非金钱，财富是你睡觉时还在赚钱的资产。免费开源书。' },
+  { id: 8, term: 'Meditations', full: 'Marcus Aurelius', zh: '沉思录', cat: 'Philosophy',
+    desc_en: 'Private journals of the Roman Emperor Marcus Aurelius, written nearly 2000 years ago. The foundational text of Stoic philosophy — timeless wisdom on resilience and virtue.',
+    desc_zh: '罗马皇帝马可·奥勒留的私人日记，写于近 2000 年前。斯多葛哲学的奠基之作，关于韧性、美德与内心平静的永恒智慧。' },
+  { id: 9, term: 'Tao Te Ching', full: 'Laozi (老子)', zh: '道德经', cat: 'Philosophy',
+    desc_en: 'The foundational text of Taoism, written around 600 BC. In just 5000 characters, it captures the deepest truths about nature, leadership, and living in harmony.',
+    desc_zh: '道家哲学的奠基之作，约公元前 600 年写成。仅 5000 字却道尽自然、领导力与和谐生活的至深智慧。被翻译成外语次数仅次于《圣经》。' },
+  { id: 10, term: 'Siddhartha', full: 'Hermann Hesse', zh: '悉达多', cat: 'Philosophy',
+    desc_en: 'A poetic novel about a young man\'s spiritual journey to find meaning. Blends Eastern and Western philosophy beautifully. Inspired millions including Steve Jobs.',
+    desc_zh: '一位年轻人寻找人生意义的精神之旅，优美融合东西方哲学。影响了乔布斯等无数人，是最美的心灵成长小说之一。' },
+  { id: 11, term: 'Man\'s Search for Meaning', full: 'Viktor Frankl', zh: '活出生命的意义', cat: 'Philosophy',
+    desc_en: 'A Holocaust survivor\'s account of finding purpose even in the darkest circumstances. The birth of logotherapy: meaning is the primary drive of human life.',
+    desc_zh: '大屠杀幸存者弗兰克尔在最黑暗的境遇中寻找人生意义的记录。意义疗法的诞生之作：人可以被夺走一切，唯独选择态度的自由。' },
+  { id: 12, term: 'Deep Work', full: 'Cal Newport', zh: '深度工作', cat: 'Self-help',
+    desc_en: 'In a world of constant distraction, the ability to focus deeply is a superpower. Newport shows how to cultivate it and why it\'s the key to meaningful work.',
+    desc_zh: '在注意力分散的时代，深度专注是超能力。纽波特教你如何培养深度工作的能力，以及为何这是产出有意义成果的关键。' },
+  { id: 13, term: 'The Power of Now', full: 'Eckhart Tolle', zh: '当下的力量', cat: 'Philosophy',
+    desc_en: 'A spiritual guide to living in the present moment. Tolle\'s core teaching: most human suffering comes from dwelling on the past or worrying about the future.',
+    desc_zh: '活在当下的灵性指南。托利的核心教导：人类大部分痛苦来自于沉溺过去或忧虑未来。全球销量超 500 万册，奥普拉推荐改变人生的书。' },
+  { id: 14, term: 'Principles', full: 'Ray Dalio', zh: '原则', cat: 'Business',
+    desc_en: 'The founder of the world\'s largest hedge fund shares his life and work principles. Radical transparency + systematic decision-making = extraordinary results.',
+    desc_zh: '全球最大对冲基金桥水创始人分享人生与工作原则。极度透明 + 系统化决策 = 非凡成果。是管理者和投资者的必读书。' },
+  { id: 15, term: 'A Brief History of Time', full: 'Stephen Hawking', zh: '时间简史', cat: 'Science',
+    desc_en: 'Hawking makes the universe\'s biggest questions accessible: What is time? Where did we come from? The best-selling science book of all time.',
+    desc_zh: '霍金让宇宙最宏大的问题变得通俗易懂：时间是什么？我们从哪里来？史上最畅销的科普书，全球销量超 2500 万册。' },
+  { id: 16, term: 'Life 3.0', full: 'Max Tegmark', zh: '生命3.0', cat: 'AI & Tech',
+    desc_en: 'What happens when AI surpasses human intelligence? MIT physicist Tegmark explores the future of life in the age of artificial intelligence.',
+    desc_zh: '当 AI 超越人类智能会发生什么？MIT 物理学家泰格马克探讨 AI 时代生命的未来，是理解超级智能最全面的思想实验。' },
+  { id: 17, term: 'Chip War', full: 'Chris Miller', zh: '芯片战争', cat: 'AI & Tech',
+    desc_en: 'The riveting story of the global semiconductor industry and why it shapes everything from smartphones to military power and AI.',
+    desc_zh: '全球半导体产业的精彩故事，揭示芯片如何塑造从智能手机到军事力量再到 AI 的一切。理解中美科技竞争的必读书。' },
+  { id: 18, term: 'AI Superpowers', full: 'Kai-Fu Lee (李开复)', zh: 'AI·未来', cat: 'AI & Tech',
+    desc_en: 'Former Google China president explores the US-China AI race and what AI means for jobs, society, and humanity.',
+    desc_zh: '前谷歌中国总裁李开复探讨中美 AI 竞赛以及 AI 对就业、社会和人类的影响。是从中国视角理解 AI 全球格局的重要作品。' },
+  { id: 19, term: 'The Lean Startup', full: 'Eric Ries', zh: '精益创业', cat: 'Business',
+    desc_en: 'Revolutionized how startups are built: build-measure-learn. Don\'t spend years building the perfect product — launch fast, learn from real users, iterate.',
+    desc_zh: '颠覆创业方法论：构建-衡量-学习。别花几年打造完美产品——快速上线、从真实用户中学习、迭代改进。精益方法的圣经。' },
+  { id: 20, term: 'The Hard Thing About Hard Things', full: 'Ben Horowitz', zh: '创业维艰', cat: 'Business',
+    desc_en: 'No management book tells you what to do when things fall apart. Horowitz does. Raw, honest advice on the hardest parts of running a company.',
+    desc_zh: '没有管理书告诉你公司快倒闭时怎么办，这本书做到了。硅谷传奇投资人霍洛维茨分享创业中最艰难时刻的真实经验。' },
+  { id: 21, term: 'Cosmos', full: 'Carl Sagan', zh: '宇宙', cat: 'Science',
+    desc_en: 'Carl Sagan\'s poetic exploration of the universe, from the Big Bang to the possibility of extraterrestrial life. Science writing at its most beautiful.',
+    desc_zh: '卡尔·萨根对宇宙的诗意探索，从大爆炸到外星生命的可能性。最优美的科学写作，让你感受到身为宇宙一份子的敬畏与浪漫。' },
+  { id: 22, term: 'Influence', full: 'Robert Cialdini', zh: '影响力', cat: 'Science',
+    desc_en: 'The six psychological principles that drive human behavior: reciprocity, scarcity, authority, consistency, liking, and consensus. Essential for anyone in sales or leadership.',
+    desc_zh: '驱动人类行为的六大心理学原则：互惠、稀缺、权威、一致性、好感和从众。做保险、做销售、做领导都必读的经典。' },
+  { id: 23, term: 'Outliers', full: 'Malcolm Gladwell', zh: '异类', cat: 'Science',
+    desc_en: 'Why do some people succeed far more than others? Gladwell reveals the hidden factors: timing, culture, the 10,000-hour rule, and lucky breaks.',
+    desc_zh: '为什么有些人远比其他人成功？格拉德威尔揭示隐藏因素：时机、文化、一万小时定律和幸运契机。改变你理解成功的方式。' },
+  { id: 24, term: 'Poor Charlie\'s Almanack', full: 'Charlie Munger', zh: '穷查理宝典', cat: 'Business',
+    desc_en: 'The wit and wisdom of Warren Buffett\'s partner. Mental models, multidisciplinary thinking, and lifelong learning from one of the greatest investors ever.',
+    desc_zh: '巴菲特搭档查理·芒格的智慧集。心智模型、多学科思维和终身学习，被誉为"投资界的圣经"。芒格的思维方式比具体投资建议更有价值。' },
+  { id: 25, term: 'The Art of War', full: 'Sun Tzu (孙武)', zh: '孙子兵法', cat: 'Philosophy',
+    desc_en: 'Written over 2500 years ago, this military treatise remains the most influential strategy text ever. Applied in business, negotiation, and life.',
+    desc_zh: '2500 多年前的军事著作，至今仍是最具影响力的策略经典。被广泛应用于商业竞争、谈判和人生决策。全球商学院必读。' },
+  { id: 26, term: 'Antifragile', full: 'Nassim Nicholas Taleb', zh: '反脆弱', cat: 'Science',
+    desc_en: 'Beyond resilience: some things actually benefit from disorder and stress. Taleb\'s framework for thriving in an uncertain world.',
+    desc_zh: '超越韧性：有些事物反而因混乱和压力而受益。塔勒布提出在不确定世界中蓬勃发展的框架，颠覆你对风险和波动的理解。' },
+  { id: 27, term: 'Ego Is the Enemy', full: 'Ryan Holiday', zh: '自我是敌人', cat: 'Self-help',
+    desc_en: 'Drawing on Stoic philosophy, Holiday shows how ego sabotages ambition, success, and resilience at every stage of life.',
+    desc_zh: '以斯多葛哲学为根基，霍利迪揭示自我意识如何在人生每个阶段破坏你的抱负、成功和韧性。是现代斯多葛主义的最佳入门。' },
+  { id: 28, term: 'Brave New World', full: 'Aldous Huxley', zh: '美丽新世界', cat: 'Philosophy',
+    desc_en: 'A dystopian masterpiece (1932) predicting a future where humanity is controlled not by pain, but by pleasure, entertainment, and engineered happiness.',
+    desc_zh: '1932 年的反乌托邦杰作，预言人类不是被痛苦控制，而是被快乐、娱乐和人造幸福所奴役。在短视频时代读来格外警醒。' },
+  { id: 29, term: 'Thinking in Bets', full: 'Annie Duke', zh: '对赌思维', cat: 'Business',
+    desc_en: 'Former poker champion teaches you to make better decisions by thinking in probabilities rather than certainties. Every decision is a bet on the future.',
+    desc_zh: '前扑克冠军教你用概率思维替代确定性思维来做更好的决策。每个决定都是对未来的下注，好决策也可能有坏结果。' },
+  { id: 30, term: 'When Breath Becomes Air', full: 'Paul Kalanithi', zh: '当呼吸化为空气', cat: 'Philosophy',
+    desc_en: 'A neurosurgeon diagnosed with terminal cancer reflects on what makes life meaningful. Devastating, beautiful, and profoundly human.',
+    desc_zh: '一位神经外科医生被诊断出晚期癌症后，对生命意义的深刻反思。令人心碎、优美且深刻地触及人之为人的本质。' },
+];
+
+// ─── Figures (30 entries) ───
+const FIGURES = [
+  { id: 1, term: 'Jensen Huang', full: 'CEO of NVIDIA', zh: '黄仁勋', cat: 'Entrepreneur',
+    desc_en: 'Co-founder and CEO of NVIDIA. His company\'s GPUs became the backbone of modern AI. Known for his leather jacket and visionary leadership.',
+    desc_zh: 'NVIDIA 联合创始人兼 CEO，其公司的 GPU 成为现代 AI 的算力基础设施。以皮夹克和远见卓识著称，被誉为"AI 时代的军火商"。' },
+  { id: 2, term: 'Kevin Kelly', full: 'Author & Tech Philosopher', zh: '凯文·凯利', cat: 'Media',
+    desc_en: 'Co-founder of WIRED magazine and author of "The Inevitable" and "Out of Control". Known for predicting major technology trends decades in advance.',
+    desc_zh: '《连线》杂志联合创始人，《必然》《失控》作者。以超前预判科技趋势著称，是数字时代最重要的技术哲学家之一，人称"KK"。' },
+  { id: 3, term: 'Sam Altman', full: 'CEO of OpenAI', zh: '山姆·奥特曼', cat: 'Entrepreneur',
+    desc_en: 'CEO of OpenAI, the company behind ChatGPT and GPT-4. One of the most influential figures in the current AI revolution.',
+    desc_zh: 'OpenAI CEO，ChatGPT 和 GPT-4 背后的掌舵人。当前 AI 革命中最具影响力的人物之一，推动 AI 从研究走向大众消费级应用。' },
+  { id: 4, term: 'Dario Amodei', full: 'CEO of Anthropic', zh: '达里奥·阿莫迪', cat: 'AI Research',
+    desc_en: 'CEO and co-founder of Anthropic (makers of Claude). Former VP of Research at OpenAI. Focuses on AI safety and responsible development.',
+    desc_zh: 'Anthropic（Claude 开发商）CEO 兼联合创始人，前 OpenAI 研究副总裁。专注 AI 安全研究，创立 Anthropic 的核心动因是对 AI 安全的担忧。' },
+  { id: 5, term: 'Naval Ravikant', full: 'Angel Investor & Philosopher', zh: '纳瓦尔·拉维坎特', cat: 'Entrepreneur',
+    desc_en: 'Co-founder of AngelList. Known for his wisdom on wealth creation, happiness, and life philosophy. His tweets and podcast episodes have shaped a generation of founders.',
+    desc_zh: 'AngelList 联合创始人，硅谷最受尊敬的天使投资人之一。以关于财富、幸福和人生哲学的洞见闻名，一条推文就能改变你的世界观。' },
+  { id: 6, term: 'Elon Musk', full: 'CEO of Tesla, SpaceX, xAI', zh: '埃隆·马斯克', cat: 'Entrepreneur',
+    desc_en: 'The most polarizing tech leader of our time. From electric cars to Mars colonization to AI (xAI/Grok), he bets on humanity\'s biggest challenges.',
+    desc_zh: '当代最具争议的科技领袖。从电动车到火星殖民再到 AI（xAI/Grok），他押注人类最宏大的挑战。不论爱恨，无法忽视。' },
+  { id: 7, term: 'Geoffrey Hinton', full: 'Godfather of Deep Learning', zh: '杰弗里·辛顿', cat: 'AI Research',
+    desc_en: 'Nobel laureate known as the "Godfather of AI". His work on neural networks and backpropagation laid the foundation for modern deep learning. Left Google to warn about AI risks.',
+    desc_zh: '被称为"AI 教父"的诺贝尔奖得主，神经网络和反向传播的先驱。离开谷歌后公开警告 AI 风险，认为 AI 可能比人类更聪明且难以控制。' },
+  { id: 8, term: 'Demis Hassabis', full: 'CEO of Google DeepMind', zh: '德米斯·哈萨比斯', cat: 'AI Research',
+    desc_en: 'Nobel laureate, chess prodigy, game designer, neuroscientist, and AI pioneer. His DeepMind created AlphaGo, AlphaFold, and is pursuing AGI.',
+    desc_zh: '诺贝尔奖得主、国际象棋神童、游戏设计师、神经科学家、AI 先驱。其 DeepMind 创造了 AlphaGo 和 AlphaFold，正在追求通用人工智能。' },
+  { id: 9, term: 'Andrew Ng', full: 'AI Educator & Entrepreneur', zh: '吴恩达', cat: 'AI Research',
+    desc_en: 'Co-founder of Coursera and former head of Google Brain and Baidu AI. Made AI education accessible to millions worldwide through his online courses.',
+    desc_zh: 'Coursera 联合创始人，前谷歌大脑和百度 AI 负责人。通过在线课程让全球数百万人学会 AI，是 AI 教育民主化的最大功臣。' },
+  { id: 10, term: 'Fei-Fei Li', full: 'Stanford AI Lab, ImageNet Creator', zh: '李飞飞', cat: 'AI Research',
+    desc_en: 'Stanford professor who created ImageNet, the dataset that ignited the deep learning revolution. A champion of human-centered AI and diversity in tech.',
+    desc_zh: '斯坦福教授，ImageNet 数据集创建者——这个数据集点燃了深度学习革命。以人为本的 AI 倡导者，推动科技领域多元化。' },
+  { id: 11, term: 'Steve Jobs', full: 'Co-founder of Apple', zh: '史蒂夫·乔布斯', cat: 'Entrepreneur',
+    desc_en: 'Visionary who merged technology with liberal arts. Created the Mac, iPhone, iPad, and Pixar. "Stay hungry, stay foolish" — his Stanford speech inspired millions.',
+    desc_zh: '将科技与人文完美融合的远见者。创造了 Mac、iPhone、iPad 和 Pixar。"求知若饥，虚心若愚"——斯坦福演讲激励了无数人。' },
+  { id: 12, term: 'Marcus Aurelius', full: 'Roman Emperor & Stoic Philosopher', zh: '马可·奥勒留', cat: 'Philosophy',
+    desc_en: 'The philosopher-king of Rome (121-180 AD). His private journal "Meditations" became one of history\'s greatest works on resilience, duty, and inner peace.',
+    desc_zh: '罗马哲学家皇帝（121-180 年）。私人日记《沉思录》成为史上关于韧性、责任与内心平静最伟大的著作之一。' },
+  { id: 13, term: 'Laozi', full: 'Founder of Taoism', zh: '老子', cat: 'Philosophy',
+    desc_en: 'Ancient Chinese philosopher (c. 600 BC) who authored the Tao Te Ching. His teachings on the Way (Dao), wu-wei (effortless action), and harmony shaped Eastern civilization.',
+    desc_zh: '中国古代哲学家（约公元前 600 年），《道德经》作者。关于道、无为和和谐的教导塑造了东方文明，影响力延续两千六百年。' },
+  { id: 14, term: 'Buddha', full: 'Siddhartha Gautama', zh: '释迦牟尼', cat: 'Philosophy',
+    desc_en: 'Born a prince, he renounced worldly life to seek enlightenment. His teachings on suffering, impermanence, and compassion became the foundation of Buddhism.',
+    desc_zh: '生为王子，放弃世俗生活追求觉悟。关于苦、无常和慈悲的教导成为佛教的根基，影响了全球数十亿人的精神生活。' },
+  { id: 15, term: 'Confucius', full: 'Kong Qiu (孔丘)', zh: '孔子', cat: 'Philosophy',
+    desc_en: 'China\'s most influential philosopher (551-479 BC). His teachings on ethics, education, family, and governance form the bedrock of East Asian civilization.',
+    desc_zh: '中国最具影响力的哲学家（公元前 551-479 年）。关于伦理、教育、家庭和治理的教导构成东亚文明的基石。' },
+  { id: 16, term: 'Rumi', full: 'Jalal al-Din Rumi · Poet & Mystic', zh: '鲁米', cat: 'Philosophy',
+    desc_en: '13th-century Persian poet whose verses on love, spirituality, and the human soul still resonate across cultures. The best-selling poet in America today.',
+    desc_zh: '13 世纪波斯诗人，关于爱、灵性和人类灵魂的诗句至今仍跨越文化引起共鸣。令人难以置信的是，他至今仍是美国最畅销的诗人。' },
+  { id: 17, term: 'Alan Watts', full: 'Philosopher & Speaker', zh: '艾伦·沃茨', cat: 'Philosophy',
+    desc_en: 'British philosopher who brought Eastern philosophy to the West. His lectures on Zen, Taoism, and the meaning of life remain viral on YouTube decades after his death.',
+    desc_zh: '将东方哲学带到西方的英国哲学家。关于禅宗、道家和人生意义的演讲在他去世数十年后仍在 YouTube 上广为传播。' },
+  { id: 18, term: 'Albert Einstein', full: 'Theoretical Physicist', zh: '阿尔伯特·爱因斯坦', cat: 'Science',
+    desc_en: 'Revolutionized physics with the theory of relativity. Beyond science, his philosophical outlook — imagination, curiosity, and simplicity — inspires every field.',
+    desc_zh: '以相对论彻底改变了物理学。科学之外，他关于想象力、好奇心和简洁的哲学观启发着每一个领域。"想象力比知识更重要。"' },
+  { id: 19, term: 'Richard Feynman', full: 'Physicist & Educator', zh: '理查德·费曼', cat: 'Science',
+    desc_en: 'Nobel laureate known for making complex physics simple and fun. The "Feynman Technique" — if you can\'t explain it simply, you don\'t understand it well enough.',
+    desc_zh: '以把复杂物理讲得简单有趣著称的诺贝尔奖得主。"费曼学习法"：如果你不能简单地解释它，说明你还没有真正理解它。' },
+  { id: 20, term: 'Carl Sagan', full: 'Astronomer & Science Communicator', zh: '卡尔·萨根', cat: 'Science',
+    desc_en: 'Made the cosmos accessible to ordinary people through his TV series and books. "We are a way for the cosmos to know itself."',
+    desc_zh: '通过电视节目和书籍让普通人理解宇宙。"我们是宇宙认识自身的一种方式。"是科学传播史上最伟大的声音之一。' },
+  { id: 21, term: 'Stephen Hawking', full: 'Theoretical Physicist', zh: '史蒂芬·霍金', cat: 'Science',
+    desc_en: 'Explored black holes and the origin of the universe while confined to a wheelchair. His "A Brief History of Time" made cosmology a household topic.',
+    desc_zh: '在轮椅上探索黑洞和宇宙起源。《时间简史》让宇宙学走进千家万户，证明了人类精神可以超越一切身体限制。' },
+  { id: 22, term: 'Charlie Munger', full: 'Vice Chairman of Berkshire Hathaway', zh: '查理·芒格', cat: 'Entrepreneur',
+    desc_en: 'Warren Buffett\'s partner and one of the greatest thinkers on decision-making. Championed mental models and multidisciplinary learning. Lived to 99.',
+    desc_zh: '巴菲特的搭档，决策思维领域最伟大的思想家之一。倡导心智模型和跨学科学习，活到 99 岁，智慧和幽默到生命最后一刻。' },
+  { id: 23, term: 'Paul Graham', full: 'Co-founder of Y Combinator', zh: '保罗·格雷厄姆', cat: 'Entrepreneur',
+    desc_en: 'Co-founded Y Combinator, the startup accelerator behind Airbnb, Stripe, and Dropbox. His essays on startups and thinking are legendary in Silicon Valley.',
+    desc_zh: 'Y Combinator 联合创始人，孵化了 Airbnb、Stripe、Dropbox 等传奇公司。他关于创业和思考的文章在硅谷被奉为圣经。' },
+  { id: 24, term: 'Yuval Noah Harari', full: 'Historian & Author', zh: '尤瓦尔·赫拉利', cat: 'Media',
+    desc_en: 'Author of "Sapiens", "Homo Deus", and "21 Lessons". Rare ability to connect deep history with present-day technology and the future of humanity.',
+    desc_zh: '《人类简史》《未来简史》《今日简史》作者。罕见地将深层历史与当代科技和人类未来联系起来的能力，是当代最具影响力的公共知识分子。' },
+  { id: 25, term: 'Lex Fridman', full: 'Podcaster & AI Researcher', zh: '莱克斯·弗里德曼', cat: 'Media',
+    desc_en: 'MIT researcher turned top podcaster. His long-form interviews with Musk, Zuckerberg, and world leaders have become essential listening for the intellectually curious.',
+    desc_zh: 'MIT 研究员转型为顶级播客主持人。与马斯克、扎克伯格等深度对话，成为求知者的必听节目，每期 3-4 小时深度探索一个领域。' },
+  { id: 26, term: 'Nikola Tesla', full: 'Inventor & Electrical Engineer', zh: '尼古拉·特斯拉', cat: 'Science',
+    desc_en: 'The genius behind alternating current (AC), radio, and wireless technology. Overshadowed by Edison in his lifetime, now recognized as one of history\'s greatest inventors.',
+    desc_zh: '交流电、无线电和无线技术背后的天才。生前被爱迪生的光环掩盖，如今被公认为史上最伟大的发明家之一。马斯克以他命名公司。' },
+  { id: 27, term: 'Seneca', full: 'Stoic Philosopher & Statesman', zh: '塞涅卡', cat: 'Philosophy',
+    desc_en: 'Roman Stoic philosopher (4 BC - 65 AD) whose letters on anger, time, and tranquility remain incredibly practical. "We suffer more in imagination than in reality."',
+    desc_zh: '罗马斯多葛哲学家（公元前 4 年 - 公元 65 年），关于愤怒、时间和宁静的书信至今仍极具实用性。"我们在想象中受的苦比现实中更多。"' },
+  { id: 28, term: 'Ilya Sutskever', full: 'Co-founder of OpenAI & SSI', zh: '伊利亚·苏茨克维', cat: 'AI Research',
+    desc_en: 'Key architect of the deep learning revolution. Co-founded OpenAI, then left to start Safe Superintelligence Inc. (SSI), focusing solely on safe superintelligent AI.',
+    desc_zh: '深度学习革命的核心架构师。联合创立 OpenAI 后离开，创办 Safe Superintelligence Inc.（SSI），专注于安全的超级智能 AI。' },
+  { id: 29, term: 'Tim Ferriss', full: 'Author & Podcaster', zh: '蒂姆·费里斯', cat: 'Media',
+    desc_en: 'Author of "The 4-Hour Workweek". His podcast deconstructs world-class performers across every domain, revealing their habits, routines, and mental models.',
+    desc_zh: '《每周工作4小时》作者。其播客解构各领域顶尖高手的习惯、流程和心智模型，是自我提升领域最有价值的知识来源之一。' },
+  { id: 30, term: 'Kai-Fu Lee', full: 'AI Pioneer & Investor', zh: '李开复', cat: 'AI Research',
+    desc_en: 'Former president of Google China, now leading AI investor. Author of "AI Superpowers". Bridges the understanding of AI between East and West.',
+    desc_zh: '前谷歌中国总裁，现为顶级 AI 投资人。《AI·未来》作者，架起东西方 AI 理解的桥梁。经历癌症后更关注 AI 与人类价值的关系。' },
+];
+
+// ─── Movies (25 entries) ───
+const MOVIES = [
+  { id: 1, term: 'Ex Machina', full: 'Dir. Alex Garland · 2014', zh: '机械姬', cat: 'Sci-Fi',
+    desc_en: 'A programmer is invited to administer the Turing test to an AI with remarkable intelligence. A chilling exploration of consciousness and manipulation.',
+    desc_zh: '一位程序员受邀为一台高度智能的机器人进行图灵测试。深刻探讨 AI 意识、情感操控与人机边界，AI 时代最值得看的科幻惊悚片。' },
+  { id: 2, term: 'Her', full: 'Dir. Spike Jonze · 2013', zh: '她', cat: 'Drama',
+    desc_en: 'A lonely writer develops a relationship with an AI operating system. Beautifully explores loneliness, connection, and the emotional future of human-AI relationships.',
+    desc_zh: '一位孤独的作家与 AI 操作系统建立了情感关系。温柔而深刻地探讨孤独、连接与人机情感，最有预见性的 AI 电影之一。' },
+  { id: 3, term: '2001: A Space Odyssey', full: 'Dir. Stanley Kubrick · 1968', zh: '2001太空漫游', cat: 'Sci-Fi',
+    desc_en: 'A masterpiece featuring HAL 9000, one of cinema\'s most iconic AIs — an autonomous system that prioritizes its mission over human life.',
+    desc_zh: '科幻史上的里程碑，HAL 9000 是影史最经典的 AI 形象。超前预见了 AI 对齐与 AI 安全问题，视觉上至今令人叹为观止。' },
+  { id: 4, term: 'The Matrix', full: 'Dir. The Wachowskis · 1999', zh: '黑客帝国', cat: 'Sci-Fi',
+    desc_en: 'What if our entire reality is a simulation created by machines? Blends philosophy, martial arts, and cyberpunk into a cultural phenomenon.',
+    desc_zh: '如果我们的整个现实是机器创造的模拟世界呢？融合哲学、武术和赛博朋克，成为一代文化现象。红蓝药丸已成为流行文化符号。' },
+  { id: 5, term: 'Blade Runner', full: 'Dir. Ridley Scott · 1982', zh: '银翼杀手', cat: 'Sci-Fi',
+    desc_en: 'In a dystopian future, a detective hunts down rogue androids. Asks the deepest question in AI: what makes someone "real"?',
+    desc_zh: '在反乌托邦的未来，一名侦探追捕叛逃的人造人。提出 AI 领域最深刻的问题：什么让一个存在是"真实的"？视觉美学影响了整个赛博朋克流派。' },
+  { id: 6, term: 'Interstellar', full: 'Dir. Christopher Nolan · 2014', zh: '星际穿越', cat: 'Sci-Fi',
+    desc_en: 'A father travels through a wormhole to save humanity, exploring love, time, and the limits of human courage. Based on real physics by Kip Thorne.',
+    desc_zh: '一位父亲穿越虫洞拯救人类，探讨爱、时间和人类勇气的极限。基于诺贝尔物理学家基普·索恩的真实物理理论，科学与情感完美融合。' },
+  { id: 7, term: 'Arrival', full: 'Dir. Denis Villeneuve · 2016', zh: '降临', cat: 'Sci-Fi',
+    desc_en: 'A linguist is recruited to communicate with aliens. A profound meditation on language, time, and the choices we make when we know the future.',
+    desc_zh: '一位语言学家被召去与外星人交流。关于语言、时间和命运选择的深刻冥想，是近年最具智慧的科幻电影，结局令人泪目。' },
+  { id: 8, term: 'WALL-E', full: 'Dir. Andrew Stanton · 2008', zh: '机器人总动员', cat: 'Animation',
+    desc_en: 'A lonely robot on an abandoned Earth falls in love. Pixar\'s most beautiful film — a wordless love story that doubles as a warning about consumerism.',
+    desc_zh: '一个孤独的机器人在被遗弃的地球上坠入爱河。皮克斯最美的电影——一个几乎无对白的爱情故事，同时也是对消费主义的深刻警示。' },
+  { id: 9, term: 'The Imitation Game', full: 'Dir. Morten Tyldum · 2014', zh: '模仿游戏', cat: 'Drama',
+    desc_en: 'The true story of Alan Turing, who cracked the Nazi Enigma code and laid the foundations of modern computing. A genius destroyed by prejudice.',
+    desc_zh: '艾伦·图灵的真实故事——破解纳粹密码机、奠定现代计算机基础的天才，却因偏见被摧毁。理解计算机与 AI 起源的必看电影。' },
+  { id: 10, term: 'The Social Network', full: 'Dir. David Fincher · 2010', zh: '社交网络', cat: 'Drama',
+    desc_en: 'The founding story of Facebook. A gripping tale of ambition, betrayal, and how a dorm room project reshaped human communication forever.',
+    desc_zh: 'Facebook 的创建故事。关于野心、背叛，以及一个宿舍项目如何永远改变人类社交方式的精彩叙事。互联网时代的《公民凯恩》。' },
+  { id: 11, term: 'AlphaGo', full: 'Dir. Greg Kohs · 2017', zh: 'AlphaGo', cat: 'Documentary',
+    desc_en: 'The documentary of DeepMind\'s AI defeating world Go champion Lee Sedol. The moment humanity realized AI had crossed a threshold no one expected.',
+    desc_zh: 'DeepMind 的 AI 击败围棋世界冠军李世石的纪录片。人类意识到 AI 已跨越一个无人预料的门槛的历史时刻，看哭了无数人。' },
+  { id: 12, term: 'The Social Dilemma', full: 'Dir. Jeff Orlowski · 2020', zh: '监视资本主义：智能陷阱', cat: 'Documentary',
+    desc_en: 'Former Silicon Valley insiders reveal how social media is designed to be addictive and manipulative. A wake-up call about technology\'s dark side.',
+    desc_zh: '前硅谷内部人士揭示社交媒体如何被设计成令人上瘾和操纵人心的工具。关于科技阴暗面的警醒之作，每个家长都应该看。' },
+  { id: 13, term: 'A Beautiful Mind', full: 'Dir. Ron Howard · 2001', zh: '美丽心灵', cat: 'Drama',
+    desc_en: 'The story of Nobel laureate John Nash — a mathematical genius battling schizophrenia. Shows how brilliance and fragility can coexist in one mind.',
+    desc_zh: '诺贝尔奖得主约翰·纳什的故事——一位与精神分裂症斗争的数学天才。展现天才与脆弱如何共存于同一个心灵中。' },
+  { id: 14, term: 'Blade Runner 2049', full: 'Dir. Denis Villeneuve · 2017', zh: '银翼杀手2049', cat: 'Sci-Fi',
+    desc_en: 'A replicant police officer uncovers a secret that could unravel what\'s left of society. Visually stunning sequel that deepens the original\'s philosophical questions.',
+    desc_zh: '一名复制人警察发现了一个可能瓦解残存社会的秘密。视觉惊人的续集，将原作的哲学问题推向更深层次。' },
+  { id: 15, term: 'The Pursuit of Happyness', full: 'Dir. Gabriele Muccino · 2006', zh: '当幸福来敲门', cat: 'Drama',
+    desc_en: 'Based on the true story of Chris Gardner — from homeless single father to millionaire stockbroker. The most powerful film about perseverance ever made.',
+    desc_zh: '基于克里斯·加德纳的真实故事——从无家可归的单亲父亲到百万富翁股票经纪人。关于坚韧不拔最有力量的电影，看一次哭一次。' },
+  { id: 16, term: 'Ghost in the Shell', full: 'Dir. Mamoru Oshii · 1995', zh: '攻壳机动队', cat: 'Animation',
+    desc_en: 'A cyborg policewoman hunts a mysterious hacker in a future where humans merge with machines. Influenced The Matrix and the entire cyberpunk genre.',
+    desc_zh: '在人类与机器融合的未来，一位义体化女警追捕神秘黑客。影响了《黑客帝国》和整个赛博朋克流派，日本动画的巅峰之作。' },
+  { id: 17, term: 'Spirited Away', full: 'Dir. Hayao Miyazaki · 2001', zh: '千与千寻', cat: 'Animation',
+    desc_en: 'A girl enters a magical spirit world and must find courage to save her parents. Miyazaki\'s masterpiece — the highest-grossing film in Japanese history.',
+    desc_zh: '一个女孩进入神灵世界，必须鼓起勇气拯救父母。宫崎骏的巅峰之作，日本影史最高票房。关于勇气、成长和爱的永恒寓言。' },
+  { id: 18, term: 'Oppenheimer', full: 'Dir. Christopher Nolan · 2023', zh: '奥本海默', cat: 'Drama',
+    desc_en: 'The story of the father of the atomic bomb and his moral reckoning. A powerful parallel to today\'s AI debate: the creator who cannot control what he created.',
+    desc_zh: '"原子弹之父"的故事及其道德清算。与当今 AI 辩论的有力对照：创造者无法控制自己的创造物。技术伦理的永恒命题。' },
+  { id: 19, term: 'The Shawshank Redemption', full: 'Dir. Frank Darabont · 1994', zh: '肖申克的救赎', cat: 'Drama',
+    desc_en: 'A wrongfully imprisoned man never loses hope. Consistently ranked the greatest film of all time. "Hope is a good thing, maybe the best of things."',
+    desc_zh: '一个被冤枉入狱的人从未放弃希望。常年位居影史最伟大电影榜首。"希望是好事，也许是最好的事，好事永远不会消逝。"' },
+  { id: 20, term: 'Inception', full: 'Dir. Christopher Nolan · 2010', zh: '盗梦空间', cat: 'Sci-Fi',
+    desc_en: 'A thief who steals secrets from within dreams is given the task of planting an idea instead. A mind-bending journey through layers of consciousness.',
+    desc_zh: '一个从梦境中盗取秘密的小偷被要求反过来植入一个想法。穿越多层意识的烧脑之旅，重新定义了"什么是真实"的讨论。' },
+  { id: 21, term: 'Inside Out', full: 'Dir. Pete Docter · 2015', zh: '头脑特工队', cat: 'Animation',
+    desc_en: 'Pixar personifies emotions inside a girl\'s mind: Joy, Sadness, Anger, Fear, and Disgust. The most profound children\'s film ever made about emotional intelligence.',
+    desc_zh: '皮克斯将一个女孩脑中的情绪拟人化：快乐、悲伤、愤怒、恐惧和厌恶。关于情商最深刻的儿童电影，让成年人也泪流满面。' },
+  { id: 22, term: 'Lo and Behold', full: 'Dir. Werner Herzog · 2016', zh: '你看见了吗', cat: 'Documentary',
+    desc_en: 'Werner Herzog explores the history and future of the internet, AI, and connected society. Philosophical, poetic, and occasionally terrifying.',
+    desc_zh: '赫尔佐格探索互联网、AI 和互联社会的历史与未来。哲学的、诗意的，偶尔令人恐惧。大师级纪录片导演审视数字时代。' },
+  { id: 23, term: 'A.I. Artificial Intelligence', full: 'Dir. Steven Spielberg · 2001', zh: '人工智能', cat: 'Sci-Fi',
+    desc_en: 'A robot child programmed to love seeks acceptance from his human mother. Kubrick\'s concept brought to life by Spielberg — heartbreaking and visionary.',
+    desc_zh: '一个被设定了爱的能力的机器人男孩寻求人类母亲的接纳。库布里克的构想由斯皮尔伯格实现——令人心碎且极具远见。' },
+  { id: 24, term: 'Free Solo', full: 'Dir. Jimmy Chin · 2018', zh: '徒手攀岩', cat: 'Documentary',
+    desc_en: 'Alex Honnold climbs El Capitan (3,000 ft) with no ropes. The most intense documentary ever made — a meditation on fear, focus, and human potential.',
+    desc_zh: '亚历克斯·霍诺德徒手攀登 900 米高的酋长岩。史上最紧张的纪录片——关于恐惧、专注和人类潜能的冥想，看到手心冒汗。' },
+  { id: 25, term: 'The Truman Show', full: 'Dir. Peter Weir · 1998', zh: '楚门的世界', cat: 'Drama',
+    desc_en: 'A man discovers his entire life has been a TV show. Eerily prescient about surveillance, reality TV, and living in a constructed world — even more relevant in the AI age.',
+    desc_zh: '一个人发现自己的整个人生是一场电视节目。对监控、真人秀和人造世界的预言在 AI 时代更加切中要害。自由意志的终极叩问。' },
+];
+
+// ─── Tabs Configuration ───
+const TABS_CONFIG = {
+  ai:      { data: WORDS,         filters: ['核心概念','Agent','基础设施','模型与算法','数据与存储'], label: 'AI Glossaries',  addLabel: '➕ 添加词汇',      placeholder: '搜索词汇（英文缩写、中文名称、解释）…' },
+  github:  { data: GITHUB_TERMS,  filters: ['Repository','Workflow','Collaboration','Security','CI/CD'],     label: 'GitHub Terms',  addLabel: '➕ 添加 GitHub 词汇', placeholder: '搜索 GitHub 词汇…' },
+  books:   { data: BOOKS,         filters: ['AI & Tech','Business','Philosophy','Science','Self-help'],       label: 'Books',         addLabel: '➕ 添加书目',      placeholder: '搜索书名、作者…' },
+  figures: { data: FIGURES,       filters: ['AI Research','Entrepreneur','Philosophy','Science','Media'],     label: 'Figures',       addLabel: '➕ 添加人物',      placeholder: '搜索人物姓名、领域…' },
+  movies:  { data: MOVIES,        filters: ['Sci-Fi','Drama','Documentary','Animation'],                   label: 'Movies',        addLabel: '➕ 添加影片',      placeholder: '搜索片名、导演…' },
+};
+
+// ─── Runtime state ───
+const tabWords = {
+  ai:      JSON.parse(JSON.stringify(WORDS)),
+  github:  JSON.parse(JSON.stringify(GITHUB_TERMS)),
+  books:   JSON.parse(JSON.stringify(BOOKS)),
+  figures: JSON.parse(JSON.stringify(FIGURES)),
+  movies:  JSON.parse(JSON.stringify(MOVIES)),
+};
+let currentTab = 'ai';
+let words = tabWords['ai'];
 let currentFilter = 'all';
 let editingId = null;
 let currentView = 'grid';
@@ -1316,11 +1753,31 @@ function applyTheme() {
   if (btn) btn.textContent = saved === 'dark' ? '☀️ 浅色' : '🌙 深色';
 }
 
+// ─── Tab Switching ───
+function switchTab(tabId, btn) {
+  tabWords[currentTab] = words; // save current tab's changes
+  currentTab = tabId;
+  words = tabWords[tabId];
+  currentFilter = 'all';
+
+  document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const cfg = TABS_CONFIG[tabId];
+  const filterGroup = document.getElementById('filterGroup');
+  filterGroup.innerHTML = `<button class="filter-btn active" onclick="setFilter('all', this)">全部</button>` +
+    cfg.filters.map(f => `<button class="filter-btn" onclick="setFilter('${f.replace(/'/g,"\\'")}', this)">${f}</button>`).join('');
+
+  document.getElementById('searchInput').placeholder = cfg.placeholder;
+  document.getElementById('searchInput').value = '';
+  document.querySelector('.btn-add').textContent = cfg.addLabel;
+  renderCards();
+}
+
 // ─── Init ───
 function init() {
   applyTheme();
-  document.getElementById('totalCount').textContent = words.length + ' 个词条';
-  renderCards();
+  switchTab('ai', document.querySelector('.tab-item'));
 }
 
 // ─── View Toggle ───
@@ -1437,9 +1894,12 @@ function openDetail(id) {
 // ─── Add / Edit Modal ───
 function openAddModal() {
   editingId = null;
-  document.getElementById('modalTitle').textContent = '➕ 添加新词汇';
+  const cfg = TABS_CONFIG[currentTab];
+  document.getElementById('modalTitle').textContent = cfg.addLabel;
   ['f_term','f_full','f_zh','f_desc_en','f_desc_zh'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('f_cat').value = '核心概念';
+  const catSel = document.getElementById('f_cat');
+  catSel.innerHTML = cfg.filters.map(f => `<option value="${f}">${f}</option>`).join('');
+  catSel.value = cfg.filters[0];
   document.getElementById('addModal').classList.add('open');
   setTimeout(() => document.getElementById('f_term').focus(), 100);
 }
@@ -1448,11 +1908,14 @@ function openEdit(id) {
   const w = words.find(x => x.id === id);
   if (!w) return;
   editingId = id;
-  document.getElementById('modalTitle').textContent = '✏️ 编辑词汇';
+  const cfg = TABS_CONFIG[currentTab];
+  document.getElementById('modalTitle').textContent = '✏️ 编辑';
   document.getElementById('f_term').value = w.term;
   document.getElementById('f_full').value = w.full || '';
   document.getElementById('f_zh').value = w.zh;
-  document.getElementById('f_cat').value = w.cat;
+  const catSel = document.getElementById('f_cat');
+  catSel.innerHTML = cfg.filters.map(f => `<option value="${f}">${f}</option>`).join('');
+  catSel.value = w.cat;
   document.getElementById('f_desc_en').value = w.desc_en || '';
   document.getElementById('f_desc_zh').value = w.desc_zh;
   document.getElementById('addModal').classList.add('open');
@@ -1477,10 +1940,11 @@ function saveWord() {
   if (editingId) {
     const idx = words.findIndex(x => x.id === editingId);
     words[idx] = entry;
-    showToast('✅ 词汇已更新');
+    showToast('✅ 已更新');
   } else {
     words.unshift(entry);
-    showToast('✅ 新词汇已添加');
+    tabWords[currentTab] = words;
+    showToast('✅ 已添加');
   }
 
   renderCards();
@@ -1490,6 +1954,7 @@ function saveWord() {
 function deleteWord(id) {
   if (!confirm('确认删除这个词汇？')) return;
   words = words.filter(x => x.id !== id);
+  tabWords[currentTab] = words;
   renderCards();
   showToast('🗑️ 已删除');
 }
@@ -1499,7 +1964,7 @@ function exportJSON() {
   const blob = new Blob([JSON.stringify(words, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `ai-vocab-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `${currentTab}-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   showToast('✅ 已导出 JSON');
 }
